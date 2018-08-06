@@ -31,7 +31,7 @@ interface PhpStanArgs {
 }
 
 export class PhpStanController {
-  // private _is_analysing: boolean = false;
+  private _isAnalysing: boolean = false;
   private _phpstan: string = 'phpstan';
   private _diagnosticCollection: vscode.DiagnosticCollection;
   // private _worksapce: string = '';
@@ -129,6 +129,11 @@ export class PhpStanController {
   }
 
   protected analyse(the_path: string) {
+    if (this._isAnalysing) {
+      return null;
+    } else {
+      this._isAnalysing = true;
+    }
     this._statusBarItem.text = '[phpstan] analysing...';
     this._statusBarItem.show();
     let args:PhpStanArgs = {path: the_path};
@@ -155,7 +160,7 @@ export class PhpStanController {
     if (!cwd && stats.isDirectory()) {
       cwd = this.downFindRealWorkspace(basedir);
     }
-    let that = this;
+    
     let phpstan = child_process.spawn(this._phpstan, this.makeCommandArgs(args), this.setCommandOptions(cwd));
     let result = '';
     phpstan.stderr.on('data', (data) => {
@@ -169,9 +174,10 @@ export class PhpStanController {
     });
     phpstan.on('exit', (code) => {
       let data = JSON.parse(result);
-      that.setDiagnostics(data);
-      that._statusBarItem.text = '[phpstan] error ' + data.totals.file_errors;
-      that._statusBarItem.show();
+      this.setDiagnostics(data);
+      this._isAnalysing = false;
+      this._statusBarItem.text = '[phpstan] error ' + data.totals.file_errors;
+      this._statusBarItem.show();
     });
   }
 
