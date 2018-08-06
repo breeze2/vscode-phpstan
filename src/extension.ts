@@ -9,15 +9,8 @@ import { PhpStanController } from './controller';
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     let phpstan = new PhpStanController();
-    let disposable = vscode.commands.registerCommand('extension.phpstanLintThisFile', () => {
-        let editor = vscode.window.activeTextEditor;
-        if (editor) {
-            let file = editor.document.fileName;
-            phpstan.analyseFile(file);
-        }
-    });
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(phpstan);
 }
 
 // this method is called when your extension is deactivated

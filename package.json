@@ -11,8 +11,12 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.phpstanLintThisFile"
+        "*"
     ],
+    "repository": {
+        "type": "github",
+        "url": "https://github.com/breeze2/vscode-phpstan"
+    },
     "main": "./out/extension",
     "contributes": {
         "commands": [

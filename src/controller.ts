@@ -31,13 +31,38 @@ interface PhpStanArgs {
 }
 
 export class PhpStanController {
-  static is_analysing: boolean = false;
-  protected _phpstan: string = 'phpstan';
-  protected _diagnosticCollection: vscode.DiagnosticCollection;
-  protected _worksapce: string = '';
+  private _is_analysing: boolean = false;
+  private _phpstan: string = 'phpstan';
+  private _diagnosticCollection: vscode.DiagnosticCollection;
+  // private _worksapce: string = '';
+  private _disposable: vscode.Disposable;
+  private _command: vscode.Disposable;
+  private _statusBarItem: vscode.StatusBarItem;
 
   public constructor() {
-    this._diagnosticCollection = vscode.languages.createDiagnosticCollection("error");
+    let subscriptions: vscode.Disposable[] = [];
+    vscode.workspace.onDidSaveTextDocument(this._shouldAnalyseFile, this, subscriptions);
+    vscode.workspace.onDidOpenTextDocument(this._shouldAnalyseFile, this, subscriptions);
+    vscode.window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
+    vscode.window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
+    this._command = vscode.commands.registerCommand('extension.phpstanLintThisFile', this._shouldAnalyseFile);
+    this._disposable = vscode.Disposable.from(...subscriptions);
+    this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+    this._diagnosticCollection = vscode.languages.createDiagnosticCollection('phpstan_error');
+  }
+
+  public dispose() {
+    this._diagnosticCollection.dispose();
+    this._statusBarItem.dispose();
+    this._disposable.dispose();
+    this._command.dispose();
+  }
+
+  private _shouldAnalyseFile() {
+    let editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId === 'php') {
+      this.analyseFile(editor.document.fileName);
+    }
   }
 
   public analyseFile(file: string) {
@@ -84,6 +109,8 @@ export class PhpStanController {
   }
 
   protected analyse(the_path: string) {
+    this._statusBarItem.text = '[phpstan] analysing...';
+    this._statusBarItem.show();
     let args:PhpStanArgs = {path: the_path};
     let cwd: string = '';
     let stats = fs.statSync(the_path);
@@ -123,6 +150,8 @@ export class PhpStanController {
     phpstan.on('exit', (code) => {
       let data = JSON.parse(result);
       that.setDiagnostics(data);
+      that._statusBarItem.text = '[phpstan] error ' + data.totals.file_errors;
+      that._statusBarItem.show();
     });
   }
 
