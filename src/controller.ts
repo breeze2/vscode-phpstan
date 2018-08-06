@@ -86,22 +86,30 @@ export class PhpStanController {
   protected analyse(the_path: string) {
     let args:PhpStanArgs = {path: the_path};
     let cwd: string = '';
-    let options:{cwd?: string} = {};
-    args.configuration = this.upFindConfiguration(the_path);
+    let stats = fs.statSync(the_path);
+    let basedir:string = '';
+    if (stats.isFile()) {
+      basedir = path.dirname(the_path);
+    } else if (stats.isDirectory()){
+      basedir = the_path;
+    } else {
+      return null;
+    }
+    args.configuration = this.upFindConfiguration(basedir);
     if (args.configuration) {
       cwd = path.dirname(args.configuration);
     } else {
-      args.autoload_file = this.upFindAutoLoadFile(the_path);
+      args.autoload_file = this.upFindAutoLoadFile(basedir);
     }
     if(args.autoload_file) {
       cwd = path.dirname(args.autoload_file);
       cwd = path.dirname(cwd);
     }
-    if(cwd) {
-      options.cwd = cwd;
+    if (!cwd && stats.isDirectory()) {
+      cwd = this.downFindRealWorkspace(basedir);
     }
     let that = this;
-    let phpstan = child_process.spawn(this._phpstan, this.makeCommandArgs(args), options);
+    let phpstan = child_process.spawn(this._phpstan, this.makeCommandArgs(args), this.setCommandOptions(cwd));
     let result = '';
     phpstan.stderr.on('data', (data) => {
       console.log(`stderr: ${data}`);
@@ -141,12 +149,36 @@ export class PhpStanController {
     if (args.path) {
       result.push(args.path);
     }
-    console.log(result);
     return result;
   }
 
-  protected setCommandOptions(){
+  protected setCommandOptions(cwd:string){
+    let result: { cwd?: string } = {};
+    if(cwd) {
+      result.cwd = cwd;
+    }
+    return result;
+  }
 
+  protected downFindRealWorkspace(basedir: string) {
+    return this.tryFindRealWorkspace(basedir, ['src', 'source', 'sources'], ['phpstan.neon', 'phpstan.neon.dist', 'vendor/autoload.php']);
+  }
+
+  protected tryFindRealWorkspace(basedir:string, dirs: string[], targets: string[]) {
+    let work_path;
+    let temp_path;
+    for(let i in dirs) {
+      work_path = path.join(basedir, dirs[i]);
+      if (fs.existsSync(work_path)) {
+        for(let j in targets) {
+          temp_path = path.join(work_path, targets[j]);
+          if (fs.existsSync(temp_path)) {
+            return work_path;
+          }
+        }
+      }
+    }
+    return '';
   }
 
   protected upFindAutoLoadFile(basedir: string) {
