@@ -31,37 +31,57 @@ interface PhpStanArgs {
 }
 
 export class PhpStanController {
-  private _is_analysing: boolean = false;
+  // private _is_analysing: boolean = false;
   private _phpstan: string = 'phpstan';
   private _diagnosticCollection: vscode.DiagnosticCollection;
   // private _worksapce: string = '';
   private _disposable: vscode.Disposable;
-  private _command: vscode.Disposable;
   private _statusBarItem: vscode.StatusBarItem;
+  private _commandForFile: vscode.Disposable;
+  private _commandForFolder: vscode.Disposable;
 
   public constructor() {
     let subscriptions: vscode.Disposable[] = [];
     vscode.workspace.onDidSaveTextDocument(this._shouldAnalyseFile, this, subscriptions);
     vscode.workspace.onDidOpenTextDocument(this._shouldAnalyseFile, this, subscriptions);
+    vscode.window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
     vscode.window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
     vscode.window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
-    this._command = vscode.commands.registerCommand('extension.phpstanLintThisFile', this._shouldAnalyseFile);
     this._disposable = vscode.Disposable.from(...subscriptions);
     this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+    this._commandForFile = vscode.commands.registerCommand('extension.phpstanLintThisFile', ()=> {this._shouldAnalyseFile();});
+    this._commandForFolder = vscode.commands.registerCommand('extension.phpstanLintThisFolder', (resource: any) => { this._shouldAnalyseFolder(resource);});
     this._diagnosticCollection = vscode.languages.createDiagnosticCollection('phpstan_error');
+    this._shouldAnalyseFile();
   }
 
   public dispose() {
     this._diagnosticCollection.dispose();
+    this._commandForFolder.dispose();
+    this._commandForFile.dispose();
     this._statusBarItem.dispose();
     this._disposable.dispose();
-    this._command.dispose();
   }
 
   private _shouldAnalyseFile() {
     let editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'php') {
       this.analyseFile(editor.document.fileName);
+    } else {
+      this._statusBarItem.hide();
+    }
+  }
+
+  private _shouldAnalyseFolder(resource:any) {
+    if(resource && resource.fsPath) {
+      this.analyseFolder(resource.fsPath);
+    } else {
+      let editor = vscode.window.activeTextEditor;
+      if (editor && editor.document.languageId === 'php') {
+        this.analyseFolder(path.dirname(editor.document.fileName));
+      } else {
+        this._statusBarItem.hide();
+      }
     }
   }
 
@@ -69,8 +89,8 @@ export class PhpStanController {
     this.analyse(file);
   }
 
-  public analyseDir(dir: string) {
-
+  public analyseFolder(dir: string) {
+    this.analyse(dir);
   }
 
   protected setDiagnostics(data: PhpStanOuput) {

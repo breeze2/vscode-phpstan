@@ -23,8 +23,20 @@
             {
                 "command": "extension.phpstanLintThisFile",
                 "title": "phpstan: lint this file"
+            },
+            {
+                "command": "extension.phpstanLintThisFolder",
+                "title": "phpstan: lint this folder"
             }
-        ]
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "when": "explorerResourceIsFolder",
+                    "command": "extension.phpstanLintThisFolder"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
