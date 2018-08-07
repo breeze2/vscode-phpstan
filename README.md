@@ -24,14 +24,15 @@ composer global require phpstan/phpstan
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
 For example:
 
 This extension contributes the following settings:
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+* `phpstan.level`: rule levels 0-7, default max
+* `phpstan.noProgress`: no progress output, default true
+* `phpstan.memoryLimit`: memory limit, default 512M
+* `phpstan.configuration`: path of configuration
+* `phpstan.autoloadFile`: path of autoload file
 
 ## Known Issues
 
@@ -43,6 +44,3 @@ This extension contributes the following settings:
 
 Initial release of vscode-phpstan
 
------------------------------------------------------------------------------------------------------------
-
-**Enjoy!**

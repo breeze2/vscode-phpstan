@@ -1,12 +1,13 @@
 {
     "name": "phpstan",
-    "displayName": "phpstan",
-    "description": "php static analysis tool",
+    "displayName": "PHP Static Analysis",
+    "description": "Static analysis support for PHP with PhpStan",
     "version": "1.0.0",
     "publisher": "breezelin",
     "engines": {
         "vscode": "^1.25.0"
     },
+    "icon": "images/icon.png",
     "categories": [
         "Linters"
     ],
@@ -32,7 +33,7 @@
                     "phpstan.noProgress": {
                         "type": "boolean",
                         "default": true,
-                        "description": "PhpStan no progress"
+                        "description": "PhpStan no progress output"
                     },
                     "phpstan.memoryLimit": {
                         "type": "string",
