@@ -2,6 +2,7 @@ import { commands, languages, workspace, window, Disposable, Diagnostic, Diagnos
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as process from 'process';
 
 interface PhpStanOuput {
   totals: {
@@ -53,6 +54,7 @@ export class PhpStanController {
     this._commandForFile = commands.registerCommand('extension.phpstanLintThisFile', ()=> {this._shouldAnalyseFile();});
     this._commandForFolder = commands.registerCommand('extension.phpstanLintThisFolder', (resource: any) => { this._shouldAnalyseFolder(resource);});
     this._diagnosticCollection = languages.createDiagnosticCollection('phpstan_error');
+    this._initPhpstan();
     this._initConfig();
     this._shouldAnalyseFile();
   }
@@ -63,6 +65,10 @@ export class PhpStanController {
     this._commandForFile.dispose();
     this._statusBarItem.dispose();
     this._disposable.dispose();
+  }
+
+  private _initPhpstan() {
+    this._phpstan = process.platform === 'win32' ? 'phpstan.bat' : 'phpstan';
   }
 
   private _initConfig() {

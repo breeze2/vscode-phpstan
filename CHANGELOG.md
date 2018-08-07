@@ -1,7 +1,7 @@
 # Change Log
-All notable changes to the "phpstan" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [1.0.1] 7th August, 2018
+- Support Windows
 
-## [Unreleased]
+## [1.0.0] 7th August, 2018
 - Initial release
