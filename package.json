@@ -2,13 +2,13 @@
     "name": "phpstan",
     "displayName": "phpstan",
     "description": "php static analysis tool",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "breezelin",
     "engines": {
         "vscode": "^1.25.0"
     },
     "categories": [
-        "Other"
+        "Linters"
     ],
     "activationEvents": [
         "*"
