@@ -1,7 +1,8 @@
 # VSCode PhpStan README
 
 A vscode extension for [phpstan](https://github.com/phpstan/phpstan).
-Github: [https://github.com/breeze2/vscode-phpstan](https://github.com/breeze2/vscode-phpstan)
+
+Github link: [https://github.com/breeze2/vscode-phpstan](https://github.com/breeze2/vscode-phpstan)
 
 ## Features
 
