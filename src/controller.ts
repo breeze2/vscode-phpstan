@@ -1,5 +1,5 @@
+import { commands, languages, workspace, window, Disposable, Diagnostic, DiagnosticCollection, Range, StatusBarAlignment, StatusBarItem, TextDocument, Uri} from 'vscode';
 import * as child_process from 'child_process';
-import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -22,36 +22,38 @@ interface PhpStanOuput {
 }
 
 interface PhpStanArgs {
-  autoload_file?: string;
+  autoloadFile?: string;
   configuration?: string;
   level?: number|string;
-  memory_limit?: string;
-  no_progress?: boolean;
+  memoryLimit?: string;
+  noProgress?: boolean;
   path?: string;
 }
 
 export class PhpStanController {
   private _isAnalysing: boolean = false;
   private _phpstan: string = 'phpstan';
-  private _diagnosticCollection: vscode.DiagnosticCollection;
-  // private _worksapce: string = '';
-  private _disposable: vscode.Disposable;
-  private _statusBarItem: vscode.StatusBarItem;
-  private _commandForFile: vscode.Disposable;
-  private _commandForFolder: vscode.Disposable;
+  private _diagnosticCollection: DiagnosticCollection;
+  private _disposable: Disposable;
+  private _statusBarItem: StatusBarItem;
+  private _commandForFile: Disposable;
+  private _commandForFolder: Disposable;
+  private _config: PhpStanArgs = {};
 
   public constructor() {
-    let subscriptions: vscode.Disposable[] = [];
-    vscode.workspace.onDidSaveTextDocument(this._shouldAnalyseFile, this, subscriptions);
-    vscode.workspace.onDidOpenTextDocument(this._shouldAnalyseFile, this, subscriptions);
-    vscode.window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
-    vscode.window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
-    vscode.window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
-    this._disposable = vscode.Disposable.from(...subscriptions);
-    this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-    this._commandForFile = vscode.commands.registerCommand('extension.phpstanLintThisFile', ()=> {this._shouldAnalyseFile();});
-    this._commandForFolder = vscode.commands.registerCommand('extension.phpstanLintThisFolder', (resource: any) => { this._shouldAnalyseFolder(resource);});
-    this._diagnosticCollection = vscode.languages.createDiagnosticCollection('phpstan_error');
+    let subscriptions: Disposable[] = [];
+    workspace.onDidSaveTextDocument(this._shouldAnalyseFile, this, subscriptions);
+    workspace.onDidOpenTextDocument(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
+    workspace.onDidChangeConfiguration(this._initConfig, this, subscriptions);
+    this._disposable = Disposable.from(...subscriptions);
+    this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
+    this._commandForFile = commands.registerCommand('extension.phpstanLintThisFile', ()=> {this._shouldAnalyseFile();});
+    this._commandForFolder = commands.registerCommand('extension.phpstanLintThisFolder', (resource: any) => { this._shouldAnalyseFolder(resource);});
+    this._diagnosticCollection = languages.createDiagnosticCollection('phpstan_error');
+    this._initConfig();
     this._shouldAnalyseFile();
   }
 
@@ -63,8 +65,17 @@ export class PhpStanController {
     this._disposable.dispose();
   }
 
+  private _initConfig() {
+    let workspace_config = workspace.getConfiguration();
+    this._config.autoloadFile = workspace_config.get('phpstan.autoloadFile', undefined);
+    this._config.configuration = workspace_config.get('phpstan.configuration', undefined);
+    this._config.level = workspace_config.get('phpstan.level', 'max');
+    this._config.memoryLimit = workspace_config.get('phpstan.memoryLimit', '256M');
+    this._config.noProgress = workspace_config.get('phpstan.noProgress', true);
+  }
+
   private _shouldAnalyseFile() {
-    let editor = vscode.window.activeTextEditor;
+    let editor = window.activeTextEditor;
     if (editor && editor.document.languageId === 'php') {
       this.analyseFile(editor.document.fileName);
     } else {
@@ -76,7 +87,7 @@ export class PhpStanController {
     if(resource && resource.fsPath) {
       this.analyseFolder(resource.fsPath);
     } else {
-      let editor = vscode.window.activeTextEditor;
+      let editor = window.activeTextEditor;
       if (editor && editor.document.languageId === 'php') {
         this.analyseFolder(path.dirname(editor.document.fileName));
       } else {
@@ -95,32 +106,32 @@ export class PhpStanController {
 
   protected setDiagnostics(data: PhpStanOuput) {
     if(data.files) {
-      let editor = vscode.window.activeTextEditor;
-      let document:vscode.TextDocument|null = editor ? editor.document : null;
+      let editor = window.activeTextEditor;
+      let document:TextDocument|null = editor ? editor.document : null;
       for (let file in data.files) {
         let output_files = data.files[file];
         let output_messages = output_files.messages;
-        let diagnostics: vscode.Diagnostic[] = [];
-        let file_uri = vscode.Uri.file(file).toString();
-        let uri = vscode.Uri.parse(file_uri);
+        let diagnostics: Diagnostic[] = [];
+        let file_uri = Uri.file(file).toString();
+        let uri = Uri.parse(file_uri);
         output_messages.forEach(el => {
           if (el.line) {
             let line = el.line - 1;
-            let range:vscode.Range;
+            let range:Range;
             let message = el.message;
             if (document && document.uri.toString() === file_uri) {
-              range = new vscode.Range(line, 0, line, document.lineAt(line).range.end.character + 1);
+              range = new Range(line, 0, line, document.lineAt(line).range.end.character + 1);
               let text = document.getText(range);
               let result = /^(\s*).*(\s*)$/.exec(text);
               if(result) {
-                range = new vscode.Range(line, result[1].length, line, text.length-result[2].length);
+                range = new Range(line, result[1].length, line, text.length-result[2].length);
               } else {
-                range = new vscode.Range(line, 0, line, 1);
+                range = new Range(line, 0, line, 1);
               }
             } else {
-              range = new vscode.Range(line, 0, line, 1);
+              range = new Range(line, 0, line, 1);
             }
-            diagnostics.push(new vscode.Diagnostic(range, message));
+            diagnostics.push(new Diagnostic(range, message));
           }
         });
         this._diagnosticCollection.set(uri, diagnostics);
@@ -136,7 +147,7 @@ export class PhpStanController {
     }
     this._statusBarItem.text = '[phpstan] analysing...';
     this._statusBarItem.show();
-    let args:PhpStanArgs = {path: the_path};
+    let args:PhpStanArgs = {...this._config};
     let cwd: string = '';
     let stats = fs.statSync(the_path);
     let basedir:string = '';
@@ -147,18 +158,23 @@ export class PhpStanController {
     } else {
       return null;
     }
-    args.configuration = this.upFindConfiguration(basedir);
-    if (args.configuration) {
-      cwd = path.dirname(args.configuration);
+    args.path = the_path;
+    if(!args.configuration && !args.autoloadFile) {
+      args.configuration = this.upFindConfiguration(basedir);
+      if (args.configuration) {
+        cwd = path.dirname(args.configuration);
+      } else {
+        args.autoloadFile = this.upFindAutoLoadFile(basedir);
+      }
+      if(args.autoloadFile) {
+        cwd = path.dirname(args.autoloadFile);
+        cwd = path.dirname(cwd);
+      }
+      if (!cwd && stats.isDirectory()) {
+        cwd = this.downFindRealWorkPath(basedir);
+      }
     } else {
-      args.autoload_file = this.upFindAutoLoadFile(basedir);
-    }
-    if(args.autoload_file) {
-      cwd = path.dirname(args.autoload_file);
-      cwd = path.dirname(cwd);
-    }
-    if (!cwd && stats.isDirectory()) {
-      cwd = this.downFindRealWorkspace(basedir);
+      cwd = this.getCurrentWorkPath(basedir);
     }
     
     let phpstan = child_process.spawn(this._phpstan, this.makeCommandArgs(args), this.setCommandOptions(cwd));
@@ -189,17 +205,17 @@ export class PhpStanController {
     if (args.level) {
       result.push('--level=' + args.level);
     }
-    if (args.no_progress) {
+    if (args.noProgress) {
       result.push('--no-progress');
     }
-    if(args.memory_limit) {
-      result.push('--memory-limit=' + args.memory_limit);
+    if(args.memoryLimit) {
+      result.push('--memory-limit=' + args.memoryLimit);
     }
     if(args.configuration) {
       result.push('--configuration=' + args.configuration);
     }
-    if (args.autoload_file) {
-      result.push('--autoload-file=' + args.autoload_file);
+    if (args.autoloadFile) {
+      result.push('--autoload-file=' + args.autoloadFile);
     }
     if (args.path) {
       result.push(args.path);
@@ -215,11 +231,27 @@ export class PhpStanController {
     return result;
   }
 
-  protected downFindRealWorkspace(basedir: string) {
-    return this.tryFindRealWorkspace(basedir, ['src', 'source', 'sources'], ['phpstan.neon', 'phpstan.neon.dist', 'vendor/autoload.php']);
+  protected getCurrentWorkPath(basedir: string) {
+    let work_path = '';
+    let similarity = 0;
+    let folders = workspace.workspaceFolders;
+    if (folders) {
+      folders.forEach((el, i)=> {
+        if (el.uri.fsPath.length > similarity && basedir.indexOf(el.uri.fsPath)===0) {
+          work_path = el.uri.fsPath;
+          similarity = work_path.length;
+        }
+      });
+      return work_path;
+    }
+    return '';
   }
 
-  protected tryFindRealWorkspace(basedir:string, dirs: string[], targets: string[]) {
+  protected downFindRealWorkPath(basedir: string) {
+    return this.tryFindRealWorkPath(basedir, ['src', 'source', 'sources'], ['phpstan.neon', 'phpstan.neon.dist', 'vendor/autoload.php']);
+  }
+
+  protected tryFindRealWorkPath(basedir:string, dirs: string[], targets: string[]) {
     let work_path;
     let temp_path;
     for(let i in dirs) {

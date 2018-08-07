@@ -19,14 +19,47 @@
     },
     "main": "./out/extension",
     "contributes": {
+        "configuration": [
+            {
+                "type": "object",
+                "title": "PhpStan Configuration",
+                "properties": {
+                    "phpstan.level": {
+                        "type": "string",
+                        "default": "max",
+                        "description": "PhpStan rule levels 0-7"
+                    },
+                    "phpstan.noProgress": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "PhpStan no progress"
+                    },
+                    "phpstan.memoryLimit": {
+                        "type": "string",
+                        "default": "512M",
+                        "description": "PhpStan memory limit"
+                    },
+                    "phpstan.configuration": {
+                        "type": "string",
+                        "default": null,
+                        "description": "PhpStan configuration path"
+                    },
+                    "phpstan.autoloadFile": {
+                        "type": "string",
+                        "default": null,
+                        "description": "PhpStan autoload-file path"
+                    }
+                }
+            }
+        ],
         "commands": [
             {
                 "command": "extension.phpstanLintThisFile",
-                "title": "phpstan: lint this file"
+                "title": "PhpStan: Lint this file"
             },
             {
                 "command": "extension.phpstanLintThisFolder",
-                "title": "phpstan: lint this folder"
+                "title": "PhpStan: Lint this folder"
             }
         ],
         "menus": {
