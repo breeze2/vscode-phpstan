@@ -15,6 +15,12 @@ auto lint your php code, or use the command:
 * php >= 7.1
 * phpstan >= 0.10
 
+### Install phpstan
+
+```bash
+composer global require phpstan/phpstan
+```
+
 ## Extension Settings
 
 Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
