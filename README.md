@@ -41,11 +41,12 @@ This extension contributes the following settings:
 ## Release Notes
 
 ### 1.0.2
-Add phpstan error handler
+* Add phpstan error handler
+* Fix editor change hanler
 
 ### 1.0.1
-Support Windows
+* Support Windows
 
 ### 1.0.0
-Initial release of vscode-phpstan
+* Initial release of vscode-phpstan
 
