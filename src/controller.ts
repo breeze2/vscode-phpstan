@@ -1,8 +1,21 @@
-import { commands, languages, workspace, window, Disposable, Diagnostic, DiagnosticCollection, Range, StatusBarAlignment, StatusBarItem, TextDocument, Uri} from 'vscode';
-import * as child_process from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as process from 'process';
+import {
+  commands,
+  languages,
+  workspace,
+  window,
+  Disposable,
+  Diagnostic,
+  DiagnosticCollection,
+  Range,
+  StatusBarAlignment,
+  StatusBarItem,
+  TextDocument,
+  Uri
+} from "vscode";
+import * as child_process from "child_process";
+import * as path from "path";
+import * as fs from "fs";
+import * as process from "process";
 
 interface PhpStanOuput {
   totals: {
@@ -25,7 +38,7 @@ interface PhpStanOuput {
 interface PhpStanArgs {
   autoloadFile?: string;
   configuration?: string;
-  level?: number|string;
+  level?: number | string;
   memoryLimit?: string;
   noProgress?: boolean;
   path?: string;
@@ -33,7 +46,7 @@ interface PhpStanArgs {
 
 export class PhpStanController {
   private _isAnalysing: boolean = false;
-  private _phpstan: string = 'phpstan';
+  private _phpstan: string = "phpstan";
   private _diagnosticCollection: DiagnosticCollection;
   private _disposable: Disposable;
   private _statusBarItem: StatusBarItem;
@@ -43,17 +56,45 @@ export class PhpStanController {
 
   public constructor() {
     let subscriptions: Disposable[] = [];
-    workspace.onDidSaveTextDocument(this._shouldAnalyseFile, this, subscriptions);
-    workspace.onDidOpenTextDocument(this._shouldAnalyseFile, this, subscriptions);
+    workspace.onDidSaveTextDocument(
+      this._shouldAnalyseFile,
+      this,
+      subscriptions
+    );
+    workspace.onDidOpenTextDocument(
+      this._shouldAnalyseFile,
+      this,
+      subscriptions
+    );
     window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
-    window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
-    window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeActiveTextEditor(
+      this._shouldAnalyseFile,
+      this,
+      subscriptions
+    );
+    window.onDidChangeTextEditorSelection(
+      this._shouldAnalyseFile,
+      this,
+      subscriptions
+    );
     workspace.onDidChangeConfiguration(this._initConfig, this, subscriptions);
     this._disposable = Disposable.from(...subscriptions);
     this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
-    this._commandForFile = commands.registerCommand('extension.phpstanLintThisFile', ()=> {this._shouldAnalyseFile();});
-    this._commandForFolder = commands.registerCommand('extension.phpstanLintThisFolder', (resource: any) => { this._shouldAnalyseFolder(resource);});
-    this._diagnosticCollection = languages.createDiagnosticCollection('phpstan_error');
+    this._commandForFile = commands.registerCommand(
+      "extension.phpstanLintThisFile",
+      () => {
+        this._shouldAnalyseFile();
+      }
+    );
+    this._commandForFolder = commands.registerCommand(
+      "extension.phpstanLintThisFolder",
+      (resource: any) => {
+        this._shouldAnalyseFolder(resource);
+      }
+    );
+    this._diagnosticCollection = languages.createDiagnosticCollection(
+      "phpstan_error"
+    );
     this._initPhpstan();
     this._initConfig();
     this._shouldAnalyseFile();
@@ -68,33 +109,42 @@ export class PhpStanController {
   }
 
   private _initPhpstan() {
-    this._phpstan = process.platform === 'win32' ? 'phpstan.bat' : 'phpstan';
+    this._phpstan = process.platform === "win32" ? "phpstan.bat" : "phpstan";
   }
 
   private _initConfig() {
     let workspace_config = workspace.getConfiguration();
-    this._config.autoloadFile = workspace_config.get('phpstan.autoloadFile', undefined);
-    this._config.configuration = workspace_config.get('phpstan.configuration', undefined);
-    this._config.level = workspace_config.get('phpstan.level', 'max');
-    this._config.memoryLimit = workspace_config.get('phpstan.memoryLimit', '256M');
-    this._config.noProgress = workspace_config.get('phpstan.noProgress', true);
+    this._config.autoloadFile = workspace_config.get(
+      "phpstan.autoloadFile",
+      undefined
+    );
+    this._config.configuration = workspace_config.get(
+      "phpstan.configuration",
+      undefined
+    );
+    this._config.level = workspace_config.get("phpstan.level", "max");
+    this._config.memoryLimit = workspace_config.get(
+      "phpstan.memoryLimit",
+      "256M"
+    );
+    this._config.noProgress = workspace_config.get("phpstan.noProgress", true);
   }
 
   private _shouldAnalyseFile() {
     let editor = window.activeTextEditor;
-    if (editor && editor.document.languageId === 'php') {
+    if (editor && editor.document.languageId === "php") {
       this.analyseFile(editor.document.fileName);
     } else {
       this._statusBarItem.hide();
     }
   }
 
-  private _shouldAnalyseFolder(resource:any) {
-    if(resource && resource.fsPath) {
+  private _shouldAnalyseFolder(resource: any) {
+    if (resource && resource.fsPath) {
       this.analyseFolder(resource.fsPath);
     } else {
       let editor = window.activeTextEditor;
-      if (editor && editor.document.languageId === 'php') {
+      if (editor && editor.document.languageId === "php") {
         this.analyseFolder(path.dirname(editor.document.fileName));
       } else {
         this._statusBarItem.hide();
@@ -111,9 +161,9 @@ export class PhpStanController {
   }
 
   protected setDiagnostics(data: PhpStanOuput) {
-    if(data.files) {
+    if (data.files) {
       let editor = window.activeTextEditor;
-      let document:TextDocument|null = editor ? editor.document : null;
+      let document: TextDocument | null = editor ? editor.document : null;
       for (let file in data.files) {
         let output_files = data.files[file];
         let output_messages = output_files.messages;
@@ -123,14 +173,24 @@ export class PhpStanController {
         output_messages.forEach(el => {
           if (el.line) {
             let line = el.line - 1;
-            let range:Range;
+            let range: Range;
             let message = el.message;
             if (document && document.uri.toString() === file_uri) {
-              range = new Range(line, 0, line, document.lineAt(line).range.end.character + 1);
+              range = new Range(
+                line,
+                0,
+                line,
+                document.lineAt(line).range.end.character + 1
+              );
               let text = document.getText(range);
               let result = /^(\s*).*(\s*)$/.exec(text);
-              if(result) {
-                range = new Range(line, result[1].length, line, text.length-result[2].length);
+              if (result) {
+                range = new Range(
+                  line,
+                  result[1].length,
+                  line,
+                  text.length - result[2].length
+                );
               } else {
                 range = new Range(line, 0, line, 1);
               }
@@ -151,28 +211,28 @@ export class PhpStanController {
     } else {
       this._isAnalysing = true;
     }
-    this._statusBarItem.text = '[phpstan] analysing...';
+    this._statusBarItem.text = "[phpstan] analysing...";
     this._statusBarItem.show();
-    let args:PhpStanArgs = {...this._config};
-    let cwd: string = '';
+    let args: PhpStanArgs = { ...this._config };
+    let cwd: string = "";
     let stats = fs.statSync(the_path);
-    let basedir:string = '';
+    let basedir: string = "";
     if (stats.isFile()) {
       basedir = path.dirname(the_path);
-    } else if (stats.isDirectory()){
+    } else if (stats.isDirectory()) {
       basedir = the_path;
     } else {
       return null;
     }
     args.path = the_path;
-    if(!args.configuration && !args.autoloadFile) {
+    if (!args.configuration && !args.autoloadFile) {
       args.configuration = this.upFindConfiguration(basedir);
       if (args.configuration) {
         cwd = path.dirname(args.configuration);
       } else {
         args.autoloadFile = this.upFindAutoLoadFile(basedir);
       }
-      if(args.autoloadFile) {
+      if (args.autoloadFile) {
         cwd = path.dirname(args.autoloadFile);
         cwd = path.dirname(cwd);
       }
@@ -182,46 +242,50 @@ export class PhpStanController {
     } else {
       cwd = this.getCurrentWorkPath(basedir);
     }
-    
-    let phpstan = child_process.spawn(this._phpstan, this.makeCommandArgs(args), this.setCommandOptions(cwd));
-    let result = '';
-    phpstan.stderr.on('data', (data) => {
+
+    let phpstan = child_process.spawn(
+      this._phpstan,
+      this.makeCommandArgs(args),
+      this.setCommandOptions(cwd)
+    );
+    let result = "";
+    phpstan.stderr.on("data", data => {
       console.log(`stderr: ${data}`);
     });
-    phpstan.stdout.on('data', (data) => {
-      if(data instanceof Buffer) {
-        data = data.toString('utf8');
+    phpstan.stdout.on("data", data => {
+      if (data instanceof Buffer) {
+        data = data.toString("utf8");
       }
       result += data;
     });
-    phpstan.on('exit', (code) => {
+    phpstan.on("exit", code => {
       let data = JSON.parse(result);
       this.setDiagnostics(data);
       this._isAnalysing = false;
-      this._statusBarItem.text = '[phpstan] error ' + data.totals.file_errors;
+      this._statusBarItem.text = "[phpstan] error " + data.totals.file_errors;
       this._statusBarItem.show();
     });
   }
 
   protected makeCommandArgs(args: PhpStanArgs) {
     let result: string[] = [];
-    result.push('analyse');
-    result.push('--errorFormat=json');
-    result.push('--level=max');
+    result.push("analyse");
+    result.push("--errorFormat=json");
+    result.push("--level=max");
     if (args.level) {
-      result.push('--level=' + args.level);
+      result.push("--level=" + args.level);
     }
     if (args.noProgress) {
-      result.push('--no-progress');
+      result.push("--no-progress");
     }
-    if(args.memoryLimit) {
-      result.push('--memory-limit=' + args.memoryLimit);
+    if (args.memoryLimit) {
+      result.push("--memory-limit=" + args.memoryLimit);
     }
-    if(args.configuration) {
-      result.push('--configuration=' + args.configuration);
+    if (args.configuration) {
+      result.push("--configuration=" + args.configuration);
     }
     if (args.autoloadFile) {
-      result.push('--autoload-file=' + args.autoloadFile);
+      result.push("--autoload-file=" + args.autoloadFile);
     }
     if (args.path) {
       result.push(args.path);
@@ -229,41 +293,52 @@ export class PhpStanController {
     return result;
   }
 
-  protected setCommandOptions(cwd:string){
+  protected setCommandOptions(cwd: string) {
     let result: { cwd?: string } = {};
-    if(cwd) {
+    if (cwd) {
       result.cwd = cwd;
     }
     return result;
   }
 
   protected getCurrentWorkPath(basedir: string) {
-    let work_path = '';
+    let work_path = "";
     let similarity = 0;
     let folders = workspace.workspaceFolders;
     if (folders) {
-      folders.forEach((el, i)=> {
-        if (el.uri.fsPath.length > similarity && basedir.indexOf(el.uri.fsPath)===0) {
+      folders.forEach((el, i) => {
+        if (
+          el.uri.fsPath.length > similarity &&
+          basedir.indexOf(el.uri.fsPath) === 0
+        ) {
           work_path = el.uri.fsPath;
           similarity = work_path.length;
         }
       });
       return work_path;
     }
-    return '';
+    return "";
   }
 
   protected downFindRealWorkPath(basedir: string) {
-    return this.tryFindRealWorkPath(basedir, ['src', 'source', 'sources'], ['phpstan.neon', 'phpstan.neon.dist', 'vendor/autoload.php']);
+    return this.tryFindRealWorkPath(
+      basedir,
+      ["src", "source", "sources"],
+      ["phpstan.neon", "phpstan.neon.dist", "vendor/autoload.php"]
+    );
   }
 
-  protected tryFindRealWorkPath(basedir:string, dirs: string[], targets: string[]) {
+  protected tryFindRealWorkPath(
+    basedir: string,
+    dirs: string[],
+    targets: string[]
+  ) {
     let work_path;
     let temp_path;
-    for(let i in dirs) {
+    for (let i in dirs) {
       work_path = path.join(basedir, dirs[i]);
       if (fs.existsSync(work_path)) {
-        for(let j in targets) {
+        for (let j in targets) {
           temp_path = path.join(work_path, targets[j]);
           if (fs.existsSync(temp_path)) {
             return work_path;
@@ -271,7 +346,7 @@ export class PhpStanController {
         }
       }
     }
-    return '';
+    return "";
   }
 
   protected upFindAutoLoadFile(basedir: string) {
@@ -280,41 +355,41 @@ export class PhpStanController {
     let autoload: string;
     basename = basedir;
     parentname = path.dirname(basename);
-    autoload = path.join(basename, 'vendor/autoload.php');
+    autoload = path.join(basename, "vendor/autoload.php");
     while (1) {
       if (fs.existsSync(autoload)) {
         return autoload;
       } else if (basename === parentname) {
-        return '';
+        return "";
       } else {
         basename = parentname;
         parentname = path.dirname(basename);
-        autoload = path.join(basename, 'vendor/autoload.php');
+        autoload = path.join(basename, "vendor/autoload.php");
       }
     }
   }
 
   protected upFindConfiguration(basedir: string) {
     let basename: string;
-    let parentname:string;
+    let parentname: string;
     let config1: string;
     let config2: string;
     basename = basedir;
     parentname = path.dirname(basename);
-    config1 = path.join(basename, 'phpstan.neon');
-    config2 = path.join(basename, 'phpstan.neon.dist');
-    while(1) {
-      if(fs.existsSync(config1)) {
+    config1 = path.join(basename, "phpstan.neon");
+    config2 = path.join(basename, "phpstan.neon.dist");
+    while (1) {
+      if (fs.existsSync(config1)) {
         return config1;
-      } else if(fs.existsSync(config2)) {
+      } else if (fs.existsSync(config2)) {
         return config2;
-      } else if(basename === parentname) {
-        return '';
+      } else if (basename === parentname) {
+        return "";
       } else {
         basename = parentname;
         parentname = path.dirname(basename);
-        config1 = path.join(basename, 'phpstan.neon');
-        config2 = path.join(basename, 'phpstan.neon.dist');
+        config1 = path.join(basename, "phpstan.neon");
+        config2 = path.join(basename, "phpstan.neon.dist");
       }
     }
   }
