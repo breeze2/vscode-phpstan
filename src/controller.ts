@@ -58,6 +58,7 @@ export class PhpStanController {
 
   public constructor() {
     let subscriptions: Disposable[] = [];
+    workspace.onDidChangeConfiguration(this._initConfig, this, subscriptions);
     workspace.onDidSaveTextDocument(
       this._shouldAnalyseFile,
       this,
@@ -69,15 +70,18 @@ export class PhpStanController {
       subscriptions
     );
     window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
-    window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeActiveTextEditor(
+      this._shouldAnalyseFile,
+      this,
+      subscriptions
+    );
     // window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
-    workspace.onDidChangeConfiguration(this._initConfig, this, subscriptions);
     this._disposable = Disposable.from(...subscriptions);
     this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
     this._commandForFile = commands.registerCommand(
       "extension.phpstanLintThisFile",
       () => {
-        this._shouldAnalyseFile();
+        this._shouldAnalyseFile(null);
       }
     );
     this._commandForFolder = commands.registerCommand(
@@ -91,7 +95,7 @@ export class PhpStanController {
     );
     this._initPhpstan();
     this._initConfig();
-    this._shouldAnalyseFile();
+    this._shouldAnalyseFile(null);
   }
 
   public dispose() {
@@ -124,10 +128,17 @@ export class PhpStanController {
     this._config.noProgress = workspace_config.get("phpstan.noProgress", true);
   }
 
-  private _shouldAnalyseFile() {
-    let editor = window.activeTextEditor;
-    if (editor && editor.document.languageId === "php") {
-      this.analyseFile(editor.document.fileName);
+  private _shouldAnalyseFile(document: any) {
+    if (!document || !document.fileName) {
+      let editor = window.activeTextEditor;
+      if (editor) {
+        document = editor.document;
+      } else {
+        return;
+      }
+    }
+    if (document.languageId === "php") {
+      this.analyseFile(document.fileName);
     } else {
       this._statusBarItem.hide();
     }
@@ -256,7 +267,7 @@ export class PhpStanController {
     phpstan.on("exit", code => {
       debug.activeDebugConsole.appendLine(`[phpstan] exit: ${code}`);
       let data = JSON.parse(result);
-      if(data) {
+      if (data) {
         this.setDiagnostics(data);
         this._statusBarItem.text = "[phpstan] error " + data.totals.file_errors;
         this._statusBarItem.show();
@@ -265,7 +276,7 @@ export class PhpStanController {
       }
       this._isAnalysing = false;
     });
-    phpstan.on("error", err=> {
+    phpstan.on("error", err => {
       debug.activeDebugConsole.appendLine(`[phpstan] error: ${err}`);
       this._isAnalysing = false;
     });
