@@ -40,10 +40,12 @@ This extension contributes the following settings:
 
 ## Release Notes
 
+### 1.0.2
+Add phpstan error handler
+
 ### 1.0.1
 Support Windows
 
 ### 1.0.0
-
 Initial release of vscode-phpstan
 
