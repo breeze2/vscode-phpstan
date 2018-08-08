@@ -3,6 +3,7 @@ import {
   languages,
   workspace,
   window,
+  debug,
   Disposable,
   Diagnostic,
   DiagnosticCollection,
@@ -12,6 +13,7 @@ import {
   TextDocument,
   Uri
 } from "vscode";
+
 import * as child_process from "child_process";
 import * as path from "path";
 import * as fs from "fs";
@@ -67,16 +69,8 @@ export class PhpStanController {
       subscriptions
     );
     window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
-    window.onDidChangeActiveTextEditor(
-      this._shouldAnalyseFile,
-      this,
-      subscriptions
-    );
-    window.onDidChangeTextEditorSelection(
-      this._shouldAnalyseFile,
-      this,
-      subscriptions
-    );
+    window.onDidChangeActiveTextEditor(this._shouldAnalyseFile, this, subscriptions);
+    // window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
     workspace.onDidChangeConfiguration(this._initConfig, this, subscriptions);
     this._disposable = Disposable.from(...subscriptions);
     this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
@@ -144,7 +138,7 @@ export class PhpStanController {
       this.analyseFolder(resource.fsPath);
     } else {
       let editor = window.activeTextEditor;
-      if (editor && editor.document.languageId === "php") {
+      if (editor) {
         this.analyseFolder(path.dirname(editor.document.fileName));
       } else {
         this._statusBarItem.hide();
@@ -197,7 +191,7 @@ export class PhpStanController {
             } else {
               range = new Range(line, 0, line, 1);
             }
-            diagnostics.push(new Diagnostic(range, message));
+            diagnostics.push(new Diagnostic(range, "[phpstan] " + message));
           }
         });
         this._diagnosticCollection.set(uri, diagnostics);
@@ -250,7 +244,8 @@ export class PhpStanController {
     );
     let result = "";
     phpstan.stderr.on("data", data => {
-      console.log(`stderr: ${data}`);
+      // console.log(`[phpstan] stderr: ${data}`);
+      debug.activeDebugConsole.appendLine(`[phpstan] stderr: ${data}`);
     });
     phpstan.stdout.on("data", data => {
       if (data instanceof Buffer) {
@@ -259,11 +254,20 @@ export class PhpStanController {
       result += data;
     });
     phpstan.on("exit", code => {
+      debug.activeDebugConsole.appendLine(`[phpstan] exit: ${code}`);
       let data = JSON.parse(result);
-      this.setDiagnostics(data);
+      if(data) {
+        this.setDiagnostics(data);
+        this._statusBarItem.text = "[phpstan] error " + data.totals.file_errors;
+        this._statusBarItem.show();
+      } else {
+        this._statusBarItem.hide();
+      }
       this._isAnalysing = false;
-      this._statusBarItem.text = "[phpstan] error " + data.totals.file_errors;
-      this._statusBarItem.show();
+    });
+    phpstan.on("error", err=> {
+      debug.activeDebugConsole.appendLine(`[phpstan] error: ${err}`);
+      this._isAnalysing = false;
     });
   }
 

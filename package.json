@@ -1,89 +1,89 @@
 {
-    "name": "phpstan",
-    "displayName": "PHP Static Analysis",
-    "description": "Static analysis support for PHP with PhpStan",
-    "version": "1.0.1",
-    "publisher": "breezelin",
-    "engines": {
-        "vscode": "^1.25.0"
-    },
-    "icon": "images/icon.png",
-    "categories": [
-        "Linters"
-    ],
-    "activationEvents": [
-        "*"
-    ],
-    "repository": {
-        "type": "github",
-        "url": "https://github.com/breeze2/vscode-phpstan"
-    },
-    "main": "./out/extension",
-    "contributes": {
-        "configuration": [
-            {
-                "type": "object",
-                "title": "PhpStan Configuration",
-                "properties": {
-                    "phpstan.level": {
-                        "type": "string",
-                        "default": "max",
-                        "description": "PhpStan rule levels 0-7"
-                    },
-                    "phpstan.noProgress": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "PhpStan no progress output"
-                    },
-                    "phpstan.memoryLimit": {
-                        "type": "string",
-                        "default": "512M",
-                        "description": "PhpStan memory limit"
-                    },
-                    "phpstan.configuration": {
-                        "type": "string",
-                        "default": null,
-                        "description": "PhpStan configuration path"
-                    },
-                    "phpstan.autoloadFile": {
-                        "type": "string",
-                        "default": null,
-                        "description": "PhpStan autoload-file path"
-                    }
-                }
-            }
-        ],
-        "commands": [
-            {
-                "command": "extension.phpstanLintThisFile",
-                "title": "PhpStan: Lint this file"
-            },
-            {
-                "command": "extension.phpstanLintThisFolder",
-                "title": "PhpStan: Lint this folder"
-            }
-        ],
-        "menus": {
-            "explorer/context": [
-                {
-                    "when": "explorerResourceIsFolder",
-                    "command": "extension.phpstanLintThisFolder"
-                }
-            ]
+  "name": "phpstan",
+  "displayName": "PHP Static Analysis",
+  "description": "Static analysis support for PHP with PhpStan",
+  "version": "1.0.1",
+  "publisher": "breezelin",
+  "engines": {
+    "vscode": "^1.25.0"
+  },
+  "icon": "images/icon.png",
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/breeze2/vscode-phpstan"
+  },
+  "main": "./out/extension",
+  "contributes": {
+    "configuration": [
+      {
+        "type": "object",
+        "title": "PhpStan Configuration",
+        "properties": {
+          "phpstan.level": {
+            "type": "string",
+            "default": "max",
+            "description": "PhpStan rule levels 0-7"
+          },
+          "phpstan.noProgress": {
+            "type": "boolean",
+            "default": true,
+            "description": "PhpStan no progress output"
+          },
+          "phpstan.memoryLimit": {
+            "type": "string",
+            "default": "512M",
+            "description": "PhpStan memory limit"
+          },
+          "phpstan.configuration": {
+            "type": "string",
+            "default": null,
+            "description": "PhpStan configuration path"
+          },
+          "phpstan.autoloadFile": {
+            "type": "string",
+            "default": null,
+            "description": "PhpStan autoload-file path"
+          }
         }
-    },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test"
-    },
-    "devDependencies": {
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.6",
-        "tslint": "^5.8.0",
-        "@types/node": "^7.0.43",
-        "@types/mocha": "^2.2.42"
+      }
+    ],
+    "commands": [
+      {
+        "command": "extension.phpstanLintThisFile",
+        "title": "PhpStan: Lint this file"
+      },
+      {
+        "command": "extension.phpstanLintThisFolder",
+        "title": "PhpStan: Lint this folder"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "explorerResourceIsFolder",
+          "command": "extension.phpstanLintThisFolder"
+        }
+      ]
     }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.6",
+    "tslint": "^5.8.0",
+    "@types/node": "^7.0.43",
+    "@types/mocha": "^2.2.42"
+  }
 }
