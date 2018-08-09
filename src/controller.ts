@@ -70,7 +70,7 @@ export class PhpStanController {
       subscriptions
     );
     window.onDidChangeTextEditorSelection(
-      utils.debounce(() => this._shouldAnalyseFile(null), 1000),
+      utils.debounce(() => this._shouldAnalyseFile(null), 2000),
       this,
       subscriptions
     );
