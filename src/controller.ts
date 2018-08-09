@@ -174,6 +174,7 @@ export class PhpStanController {
         let diagnostics: Diagnostic[] = [];
         let file_uri = Uri.file(file).toString();
         let uri = Uri.parse(file_uri);
+        this._diagnosticCollection.delete(uri);
         output_messages.forEach(el => {
           if (el.line) {
             let line = el.line - 1;
@@ -212,9 +213,8 @@ export class PhpStanController {
   protected analyse(the_path: string) {
     if (this._isAnalysing) {
       return null;
-    } else {
-      this._isAnalysing = true;
     }
+    this._isAnalysing = true;
     this._statusBarItem.text = "[phpstan] analysing...";
     this._statusBarItem.show();
     let args: PhpStanArgs = { ...this._config };
@@ -253,9 +253,9 @@ export class PhpStanController {
       this.setCommandOptions(cwd)
     );
     let result = "";
-    phpstan.stderr.on("data", data => {
+    phpstan.stderr.on("data", errorData => {
       // console.log(`[phpstan] stderr: ${data}`);
-      debug.activeDebugConsole.appendLine(`[phpstan] stderr: ${data}`);
+      debug.activeDebugConsole.appendLine(`[phpstan] stderr: ${errorData}`);
     });
     phpstan.stdout.on("data", data => {
       if (data instanceof Buffer) {
@@ -265,6 +265,10 @@ export class PhpStanController {
     });
     phpstan.on("exit", code => {
       debug.activeDebugConsole.appendLine(`[phpstan] exit: ${code}`);
+      let index = result.indexOf('{"totals":');
+      if (index > -1) {
+        result = result.substring(index);
+      }
       let data = JSON.parse(result);
       if (data) {
         this.setDiagnostics(data);
