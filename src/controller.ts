@@ -13,7 +13,7 @@ import {
   TextDocument,
   Uri
 } from "vscode";
-
+import * as utils from "./utils";
 import * as child_process from "child_process";
 import * as path from "path";
 import * as fs from "fs";
@@ -69,13 +69,12 @@ export class PhpStanController {
       this,
       subscriptions
     );
-    window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
-    window.onDidChangeActiveTextEditor(
-      this._shouldAnalyseFile,
+    window.onDidChangeTextEditorSelection(
+      utils.debounce(() => this._shouldAnalyseFile(null), 1000),
       this,
       subscriptions
     );
-    // window.onDidChangeTextEditorSelection(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
     this._disposable = Disposable.from(...subscriptions);
     this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
     this._commandForFile = commands.registerCommand(
