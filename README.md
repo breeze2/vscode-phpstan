@@ -40,10 +40,8 @@ This extension contributes the following settings:
 
 ## Release Notes
 
-### 1.0.3
+### 1.0.5
 * Fix phpstan stderr handler
-
-### 1.0.2
 * Add phpstan error handler
 * Fix editor change hanler
 

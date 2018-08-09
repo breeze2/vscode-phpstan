@@ -172,15 +172,15 @@ export class PhpStanController {
         let output_files = data.files[file];
         let output_messages = output_files.messages;
         let diagnostics: Diagnostic[] = [];
-        let file_uri = Uri.file(file).toString();
-        let uri = Uri.parse(file_uri);
+        let uri = Uri.file(file);
+        let uri_string = uri.toString();
         this._diagnosticCollection.delete(uri);
         output_messages.forEach(el => {
           if (el.line) {
             let line = el.line - 1;
             let range: Range;
             let message = el.message;
-            if (document && document.uri.toString() === file_uri) {
+            if (document && document.uri.toString() === uri_string) {
               range = new Range(
                 line,
                 0,
@@ -223,6 +223,7 @@ export class PhpStanController {
     let basedir: string = "";
     if (stats.isFile()) {
       basedir = path.dirname(the_path);
+      this._diagnosticCollection.delete(Uri.file(the_path));
     } else if (stats.isDirectory()) {
       basedir = the_path;
     } else {
