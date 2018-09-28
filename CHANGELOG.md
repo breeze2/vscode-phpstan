@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.0.6] 28th September, 2018
+- Auto find the local phpstan
+- Adapt phpstan 0.10.3, use `--error-format` instead of `--errorFormat`
+
 ## [1.0.5] 9th August, 2018
 - Add phpstan error handler
 - Fix phpstan stderr handler
