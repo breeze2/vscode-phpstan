@@ -249,7 +249,7 @@ export class PhpStanController {
     }
 
     let phpstan = child_process.spawn(
-      this._phpstan,
+      this.makeCommandPath(cwd),
       this.makeCommandArgs(args),
       this.setCommandOptions(cwd)
     );
@@ -286,10 +286,25 @@ export class PhpStanController {
     });
   }
 
+  protected makeCommandPath(cwd: string) {
+    let binary = "";
+    if (process.platform === "win32") {
+      binary = path.resolve(cwd, "vendor/bin/phpstan.bat");
+    } else {
+      binary = path.resolve(cwd, "vendor/bin/phpstan");
+    }
+    try {
+      fs.accessSync(binary, fs.constants.X_OK);
+      return binary;
+    } catch (err) {
+      return this._phpstan;
+    }
+  }
+
   protected makeCommandArgs(args: PhpStanArgs) {
     let result: string[] = [];
     result.push("analyse");
-    result.push("--errorFormat=json");
+    result.push("--error-format=json");
     result.push("--level=max");
     if (args.level) {
       result.push("--level=" + args.level);
