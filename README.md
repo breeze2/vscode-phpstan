@@ -42,7 +42,6 @@ This extension contributes the following settings:
 
 ### 1.0.6
 * Auto find the local phpstan
-* Adapt phpstan 0.10.3, use `--error-format` instead of `--errorFormat`
 
 ### 1.0.5
 * Fix phpstan stderr handler

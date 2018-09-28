@@ -304,7 +304,7 @@ export class PhpStanController {
   protected makeCommandArgs(args: PhpStanArgs) {
     let result: string[] = [];
     result.push("analyse");
-    result.push("--error-format=json");
+    result.push("--errorFormat=json");
     result.push("--level=max");
     if (args.level) {
       result.push("--level=" + args.level);
