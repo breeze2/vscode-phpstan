@@ -2,7 +2,8 @@
   "name": "phpstan",
   "displayName": "PHP Static Analysis",
   "description": "Static analysis support for PHP with PhpStan",
-  "version": "1.0.6",
+  "version": "1.1.0",
+  "license": "MIT",
   "publisher": "breezelin",
   "engines": {
     "vscode": "^1.25.0"
@@ -80,10 +81,10 @@
     "test": "npm run compile && node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^7.10.3",
+    "tslint": "^5.12.1",
     "typescript": "^2.6.1",
-    "vscode": "^1.1.6",
-    "tslint": "^5.8.0",
-    "@types/node": "^7.0.43",
-    "@types/mocha": "^2.2.42"
+    "vscode": "^1.1.29"
   }
 }

@@ -14,7 +14,7 @@ auto lint your php code, or use the command:
 ## Requirements
 
 * php >= 7.1
-* phpstan >= 0.10
+* phpstan >= 0.11
 
 ### Install phpstan
 
@@ -39,6 +39,9 @@ This extension contributes the following settings:
 * May need more memory when linting too many files
 
 ## Release Notes
+
+### 1.1.0
+* Adapt to PhpStan 0.11, use `--error-format` instead of `--errorFormat`
 
 ### 1.0.6
 * Auto find the local phpstan
