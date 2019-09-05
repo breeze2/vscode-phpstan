@@ -176,34 +176,32 @@ export class PhpStanController {
         let uri_string = uri.toString();
         this._diagnosticCollection.delete(uri);
         output_messages.forEach(el => {
-          if (el.line) {
-            let line = el.line - 1;
-            let range: Range;
-            let message = el.message;
-            if (document && document.uri.toString() === uri_string) {
+          let line = (el.line || 1) - 1;
+          let range: Range;
+          let message = el.message;
+          if (document && document.uri.toString() === uri_string) {
+            range = new Range(
+              line,
+              0,
+              line,
+              document.lineAt(line).range.end.character + 1
+            );
+            let text = document.getText(range);
+            let result = /^(\s*).*(\s*)$/.exec(text);
+            if (result) {
               range = new Range(
                 line,
-                0,
+                result[1].length,
                 line,
-                document.lineAt(line).range.end.character + 1
+                text.length - result[2].length
               );
-              let text = document.getText(range);
-              let result = /^(\s*).*(\s*)$/.exec(text);
-              if (result) {
-                range = new Range(
-                  line,
-                  result[1].length,
-                  line,
-                  text.length - result[2].length
-                );
-              } else {
-                range = new Range(line, 0, line, 1);
-              }
             } else {
               range = new Range(line, 0, line, 1);
             }
-            diagnostics.push(new Diagnostic(range, "[phpstan] " + message));
+          } else {
+            range = new Range(line, 0, line, 1);
           }
+          diagnostics.push(new Diagnostic(range, "[phpstan] " + message));
         });
         this._diagnosticCollection.set(uri, diagnostics);
       }
@@ -305,9 +303,10 @@ export class PhpStanController {
     let result: string[] = [];
     result.push("analyse");
     result.push("--error-format=json");
-    result.push("--level=max");
     if (args.level) {
       result.push("--level=" + args.level);
+    } else {
+      result.push("--level=max");
     }
     if (args.noProgress) {
       result.push("--no-progress");
