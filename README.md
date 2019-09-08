@@ -1,3 +1,6 @@
+[![GitHub Release](https://img.shields.io/github/release/breeze2/vscode-phpstan)](https://github.com/breeze2/vscode-phpstan/releases)
+[![Build Status](https://travis-ci.org/breeze2/vscode-phpstan.svg?branch=master)](https://travis-ci.org/breeze2/vscode-phpstan)
+
 # VSCode PhpStan README
 
 A vscode extension for [phpstan](https://github.com/phpstan/phpstan).

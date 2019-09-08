@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.1] 8th September, 2019
+- Adjust codes. Thanks @JohnstonCode
+- Use travis ci
+
+## [1.1.0] 18th February, 2019
+- Adapt to PhpStan 0.11
+
 ## [1.0.6] 28th September, 2018
 - Auto find the local phpstan
 
