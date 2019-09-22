@@ -255,8 +255,8 @@ export class PhpStanController {
     );
     let result = "";
     let errmsg = "";
-    phpstan.stderr.on("data", data => (errmsg += data.toString("utf8")));
-    phpstan.stdout.on("data", data => (result += data.toString("utf8")));
+    phpstan.stderr.on("data", data => (errmsg += data.toString()));
+    phpstan.stdout.on("data", data => (result += data.toString()));
     phpstan.on("exit", code => {
       this._isAnalysing = false;
       this._statusBarItem.show();
