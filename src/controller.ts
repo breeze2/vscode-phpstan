@@ -3,7 +3,6 @@ import {
   languages,
   workspace,
   window,
-  debug,
   Disposable,
   Diagnostic,
   DiagnosticCollection,
@@ -56,8 +55,9 @@ export class PhpStanController {
   private _commandForFolder: Disposable;
   private _config: PhpStanArgs = {};
 
+  public shouldAnalyseFile = utils.debounce(this._shouldAnalyseFile.bind(this), 2000);
   public constructor() {
-    let subscriptions: Disposable[] = [];
+    const subscriptions: Disposable[] = [];
     workspace.onDidChangeConfiguration(this._initConfig, this, subscriptions);
     workspace.onDidSaveTextDocument(
       this._shouldAnalyseFile,
@@ -70,18 +70,20 @@ export class PhpStanController {
       subscriptions
     );
     window.onDidChangeTextEditorSelection(
-      utils.debounce(() => this._shouldAnalyseFile(null), 2000),
+      () => this.shouldAnalyseFile(),
       this,
       subscriptions
     );
-    window.onDidChangeWindowState(this._shouldAnalyseFile, this, subscriptions);
+    window.onDidChangeWindowState(
+      () => this.shouldAnalyseFile(),
+      this,
+      subscriptions
+    );
     this._disposable = Disposable.from(...subscriptions);
     this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
     this._commandForFile = commands.registerCommand(
       "extension.phpstanLintThisFile",
-      () => {
-        this._shouldAnalyseFile(null);
-      }
+      this._shouldAnalyseFile,
     );
     this._commandForFolder = commands.registerCommand(
       "extension.phpstanLintThisFolder",
@@ -94,7 +96,7 @@ export class PhpStanController {
     );
     this._initPhpstan();
     this._initConfig();
-    this._shouldAnalyseFile(null);
+    this.shouldAnalyseFile();
   }
 
   public dispose() {
@@ -127,7 +129,7 @@ export class PhpStanController {
     this._config.noProgress = workspace_config.get("phpstan.noProgress", true);
   }
 
-  private _shouldAnalyseFile(document: any) {
+  private _shouldAnalyseFile(document?: TextDocument) {
     if (!document || !document.fileName) {
       let editor = window.activeTextEditor;
       if (editor) {
@@ -252,35 +254,34 @@ export class PhpStanController {
       this.setCommandOptions(cwd)
     );
     let result = "";
-    phpstan.stderr.on("data", errorData => {
-      // console.log(`[phpstan] stderr: ${data}`);
-      debug.activeDebugConsole.appendLine(`[phpstan] stderr: ${errorData}`);
-    });
-    phpstan.stdout.on("data", data => {
-      if (data instanceof Buffer) {
-        data = data.toString("utf8");
-      }
-      result += data;
-    });
+    let errmsg = "";
+    phpstan.stderr.on("data", data => (errmsg += data.toString()));
+    phpstan.stdout.on("data", data => (result += data.toString()));
     phpstan.on("exit", code => {
-      debug.activeDebugConsole.appendLine(`[phpstan] exit: ${code}`);
-      let index = result.indexOf('{"totals":');
-      if (index > -1) {
-        result = result.substring(index);
-      }
-      let data = JSON.parse(result);
-      if (data) {
+      this._isAnalysing = false;
+      this._statusBarItem.show();
+
+      if (code === 0) {
+        // no error
+        this._statusBarItem.text = "[phpstan] passed";
+      } else if (errmsg) {
+        // phpstan failed
+        console.error(`[phpstan] failed: ${errmsg}`);
+        window.showErrorMessage(errmsg);
+        this._statusBarItem.text = "[phpstan] failed";
+      } else if (result) {
+        // phpstan error
+        console.log(`[phpstan] error: ${result}`);
+        const index = result.indexOf('{"totals":');
+        if (index > -1) {
+          result = result.substring(index);
+        }
+        const data = JSON.parse(result);
         this.setDiagnostics(data);
         this._statusBarItem.text = "[phpstan] error " + data.totals.file_errors;
-        this._statusBarItem.show();
       } else {
-        this._statusBarItem.hide();
+        this._statusBarItem.text = "[phpstan] unknow";
       }
-      this._isAnalysing = false;
-    });
-    phpstan.on("error", err => {
-      debug.activeDebugConsole.appendLine(`[phpstan] error: ${err}`);
-      this._isAnalysing = false;
     });
   }
 
@@ -303,7 +304,9 @@ export class PhpStanController {
     let result: string[] = [];
     result.push("analyse");
     result.push("--error-format=json");
-    if (args.level) {
+    if (args.level === "config") {
+      // set level in config file
+    } else if (args.level) {
       result.push("--level=" + args.level);
     } else {
       result.push("--level=max");
