@@ -2,7 +2,7 @@
   "name": "phpstan",
   "displayName": "PHP Static Analysis",
   "description": "Static analysis support for PHP with PhpStan",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "license": "MIT",
   "publisher": "breezelin",
   "engines": {

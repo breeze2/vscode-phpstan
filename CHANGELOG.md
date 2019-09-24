@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.1.2] 24th September, 2019
+- Refactor analysis process
+
 ## [1.1.1] 8th September, 2019
 - Adjust codes. Thanks @JohnstonCode
 - Use travis ci
