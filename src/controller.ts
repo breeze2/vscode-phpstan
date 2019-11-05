@@ -286,12 +286,12 @@ export class PhpStanController {
   }
 
   protected makeCommandPath(cwd: string) {
-    let binary = "";
-    if (process.platform === "win32") {
-      binary = path.resolve(cwd, "vendor/bin/phpstan.bat");
-    } else {
-      binary = path.resolve(cwd, "vendor/bin/phpstan");
-    }
+    let bindir = "vendor/bin";
+    const basename = process.platform === "win32" ? "phpstan.bat" : "phpstan";
+    try {
+      bindir = child_process.execSync("composer config bin-dir", {cwd}).toString().trim();
+    } catch (err) {}
+    const binary = path.resolve(cwd, bindir, basename);
     try {
       fs.accessSync(binary, fs.constants.X_OK);
       return binary;
