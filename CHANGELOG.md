@@ -1,10 +1,13 @@
 # Change Log
 
+## [1.1.3] 11th November, 2019
+- Use configured bindir by composer. Thanks @[mtorromeo](https://github.com/mtorromeo).
+
 ## [1.1.2] 24th September, 2019
 - Refactor analysis process
 
 ## [1.1.1] 8th September, 2019
-- Adjust codes. Thanks @JohnstonCode
+- Adjust codes. Thanks @[JohnstonCode](https://github.com/JohnstonCode).
 - Use travis ci
 
 ## [1.1.0] 18th February, 2019
