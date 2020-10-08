@@ -83,7 +83,7 @@ export class PhpStanController {
     this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
     this._commandForFile = commands.registerCommand(
       "extension.phpstanLintThisFile",
-      this._shouldAnalyseFile,
+      this._shouldAnalyseFile.bind(this),
     );
     this._commandForFolder = commands.registerCommand(
       "extension.phpstanLintThisFolder",
