@@ -95,7 +95,6 @@ export class PhpStanController {
     this._diagnosticCollection = languages.createDiagnosticCollection(
       "phpstan_error"
     );
-    this._initPhpstan();
     this._initConfig();
     this.shouldAnalyseFile();
   }
@@ -106,10 +105,6 @@ export class PhpStanController {
     this._commandForFile.dispose();
     this._statusBarItem.dispose();
     this._disposable.dispose();
-  }
-
-  private _initPhpstan() {
-    this._phpstan = process.platform === "win32" ? "phpstan.bat" : "phpstan";
   }
 
   private _initConfig() {
@@ -128,6 +123,8 @@ export class PhpStanController {
       "256M"
     );
     this._config.noProgress = workspace_config.get("phpstan.noProgress", true);
+    this._config.path = workspace_config.get("phpstan.path", false);
+    this._phpstan = this._config.path ? "phpstan" : this._config.path;
   }
 
   private _shouldAnalyseFile(document?: TextDocument) {
