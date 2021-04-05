@@ -50,6 +50,11 @@
             "type": "string",
             "default": null,
             "description": "PhpStan autoload-file path"
+          },
+          "phpstan.binPath": {
+            "type": "string",
+            "default": "phpstan",
+            "description": "Path to phpstan executable"
           }
         }
       }
