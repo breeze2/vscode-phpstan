@@ -43,6 +43,7 @@ interface PhpStanArgs {
   memoryLimit?: string;
   noProgress?: boolean;
   path?: string;
+  binPath?: string;
 }
 
 export class PhpStanController {
@@ -123,7 +124,7 @@ export class PhpStanController {
       "256M"
     );
     this._config.noProgress = workspace_config.get("phpstan.noProgress", true);
-    this._config.binPath = workspace_config.get("phpstan.binPath", false);
+    this._config.binPath = workspace_config.get("phpstan.binPath", undefined);
     this._phpstan = this._config.binPath ? "phpstan" : this._config.binPath;
   }
 
