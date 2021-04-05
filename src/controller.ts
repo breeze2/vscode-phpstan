@@ -247,7 +247,7 @@ export class PhpStanController {
     }
 
     let phpstan = child_process.spawn(
-      this.makeCommandPath(cwd),
+      this.makeCommandPath(cwd, args.binPath),
       this.makeCommandArgs(args),
       this.setCommandOptions(cwd)
     );
@@ -283,8 +283,7 @@ export class PhpStanController {
     });
   }
 
-  protected makeCommandPath(cwd: string) {
-    const binary = this._config.binPath;
+  protected makeCommandPath(cwd: string, binary: string) {
     try {
       fs.accessSync(binary, fs.constants.X_OK);
       return binary;
