@@ -283,7 +283,8 @@ export class PhpStanController {
     });
   }
 
-  protected makeCommandPath(cwd: string, binary: string) {
+  protected makeCommandPath(cwd: string, binary?: string) {
+    const binary = binary ? "phpstan" : binary ;
     try {
       fs.accessSync(binary, fs.constants.X_OK);
       return binary;
