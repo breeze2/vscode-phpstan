@@ -123,8 +123,8 @@ export class PhpStanController {
       "256M"
     );
     this._config.noProgress = workspace_config.get("phpstan.noProgress", true);
-    this._config.path = workspace_config.get("phpstan.path", false);
-    this._phpstan = this._config.path ? "phpstan" : this._config.path;
+    this._config.binPath = workspace_config.get("phpstan.binPath", false);
+    this._phpstan = this._config.binPath ? "phpstan" : this._config.binPath;
   }
 
   private _shouldAnalyseFile(document?: TextDocument) {
