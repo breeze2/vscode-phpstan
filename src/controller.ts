@@ -43,7 +43,7 @@ interface PhpStanArgs {
   memoryLimit?: string;
   noProgress?: boolean;
   path?: string;
-  binPath?: bool | string;
+  binPath?: boolean | string;
 }
 
 export class PhpStanController {
