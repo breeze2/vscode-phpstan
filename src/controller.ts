@@ -224,7 +224,6 @@ export class PhpStanController {
     let basedir: string = "";
     if (stats.isFile()) {
       basedir = path.dirname(the_path);
-      this._diagnosticCollection.delete(Uri.file(the_path));
     } else if (stats.isDirectory()) {
       basedir = the_path;
     } else {
