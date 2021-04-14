@@ -261,6 +261,10 @@ export class PhpStanController {
       this._analyzing = false;
       this._statusBarItem.show();
 
+      if (stats.isFile()) {
+        this._diagnosticCollection.delete(Uri.file(the_path));
+      }
+
       if (code === 0) {
         // no error
         this._statusBarItem.text = "[phpstan] passed";
