@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1.5] 17th April, 2021
+
+- Errors disappear during analysis [#15](https://github.com/breeze2/vscode-phpstan/issues/15). Thanks @[Vaggal](https://github.com/Vaggal).
+
 ## [1.1.4] 24th November, 2020
 
 - Fix Error when attempting to lint file [#18](https://github.com/breeze2/vscode-phpstan/issues/18). Thanks @[jasonwilliams](https://github.com/jasonwilliams) and @[Silic0nS0ldier](https://github.com/Silic0nS0ldier).
