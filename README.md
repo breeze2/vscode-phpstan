@@ -36,6 +36,7 @@ This extension contributes the following settings:
 * `phpstan.memoryLimit`: memory limit, default 512M
 * `phpstan.configuration`: path of configuration
 * `phpstan.autoloadFile`: path of autoload file
+* `phpstan.binPath`: path to the phpstan executable
 
 ## Known Issues
 
